@@ -31,7 +31,7 @@ def get_input():
 if __name__ == '__main__':
     args, params = get_input()
 
-    pixel_shifts = str(params["pixel_shifts"])
+    pixel_shifts = params["pixel_shifts"]
     remove_direction = int(params["direction"])
 
     new_pixel_shifts = pixel_shifts
@@ -39,4 +39,4 @@ if __name__ == '__main__':
 
     out = {'pixel_shifts' : new_pixel_shifts}
     cmdline_config_cxi_reader.write_all(params, args.filename, out, apply_roi=False)
-    print('display: '+params['h5_group']+'/pixel_shifts') ; sys.stdout.flush()
+    print('display: '+params['h5_group']+'/') ; sys.stdout.flush()
