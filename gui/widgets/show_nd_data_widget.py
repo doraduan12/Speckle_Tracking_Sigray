@@ -25,6 +25,7 @@ class Show_nd_data_widget(QWidget):
         self.setLayout(self.layout)
     
     def show(self, filename, name, refresh=False):
+        print("here are the args",filename,name)
         """
         plots:
             (N,)      float, int          --> line plot

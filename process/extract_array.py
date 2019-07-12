@@ -22,17 +22,21 @@ import numpy as np
 import h5py
 
 def get_input():
-    args, params = cmdline_config_cxi_reader.get_all('remove_shifts',
-                   'setting pixel shifts along one direction to zero')
-    params = params['remove_shifts']
+    args, params = cmdline_config_cxi_reader.get_all('extract_array',
+                   'exporting an array')
+    params = params['extract_array']
+    print(args.filename)
     
     return args, params
 
 if __name__ == '__main__':
     args, params = get_input()
-    cxinam=str(args["filename"])
+    cxinam=str(args.filename)
+    print("!!!!!!!!!!!!!!!!!!!!!!this is the cxinam",cxinam)
     npynam=cxinam[:-4]+".npy"
     array = params["array"]
     save(npynam,array)
+    out = {'output' : array}
+    cmdline_config_cxi_reader.write_all(params, args.filename, out, apply_roi=False)
     print(".npy file has been saved to location of .cxi file")
-    print('display: '+params['h5_group']+'/') ; sys.stdout.flush()
+    print('display: '+params['h5_group']+'/output') ; sys.stdout.flush()

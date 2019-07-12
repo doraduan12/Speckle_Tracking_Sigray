@@ -39,4 +39,4 @@ if __name__ == '__main__':
 
     out = {'pixel_shifts' : new_pixel_shifts}
     cmdline_config_cxi_reader.write_all(params, args.filename, out, apply_roi=False)
-    print('display: '+params['h5_group']+'/') ; sys.stdout.flush()
+    print('display: '+params['h5_group']+'/pixel_shifts') ; sys.stdout.flush()
