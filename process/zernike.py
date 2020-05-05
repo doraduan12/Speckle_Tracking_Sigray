@@ -183,7 +183,7 @@ if __name__ == '__main__':
     args, params = cmdline_config_cxi_reader.get_all('zernike', 
                    'stitch frames together to form a merged view of the sample from projection images')
     params = params['zernike']
-    
+
     phase = np.zeros_like(params['pixel_shifts'][0])
     
     # calculate the Zernike coefficients
@@ -195,7 +195,36 @@ if __name__ == '__main__':
 
     phase = make_phase(params['pixel_shifts'], params['distance'], du, wavelen, params['defocus'])
     z, z_poly, basis, basis_grid, y, x = calculate_Zernike_coeff(phase, params['mask'], params['orders'], dq)
-    
+
+    ################
+    # Fit 2nd order fit to pixel shifts
+    defoc = params['defocus']
+    #print("defocusshape",defoc.shape)
+    ddist = params['distance']
+    shifts_v = params['pixel_shifts'][0] * defoc * 2 * np.pi * du[0] /(1E6* wavelen ) #angular displacment in rad
+    #shifts_h = params['pixel_shifts'][1] * defoc * 2 * np.pi * du[1]**2 /(1E6* wavelen * ddist) #angular displacement in rad
+    shifts_h = params['pixel_shifts'][1] * defoc * 2 * np.pi * du[1] / (1E9 * wavelen )
+
+    x_shifts_v = np.arange(0, shifts_v.shape[0]) *du[0]/ddist
+    x_shifts_h = np.arange(0, shifts_h.shape[1]) *du[1]/ddist
+
+    fitvals_h=np.polyfit(x=x_shifts_h,y=shifts_h[int(shifts_h.shape[0]/2),:],deg=2)
+    fitvals_v = np.polyfit(x=x_shifts_v, y=shifts_v[:,int(shifts_v.shape[1] / 2)], deg=2)
+
+    gradient_fitcoeff_h = fitvals_h[0] #in rad/rad^2
+    gradient_fitcoeff_v = fitvals_v[0] # in rad/rad^2
+
+    gradient_gradient_fit_h = np.zeros((shifts_h.shape[1],2))
+    gradient_gradient_fit_h[:,0] = shifts_h[int(shifts_h.shape[0]/2),:]
+    gradient_gradient_fit_h[:, 1] = np.polyval(x = x_shifts_h, p = fitvals_h)
+
+    gradient_gradient_fit_v = np.zeros((shifts_v.shape[0], 2))
+    gradient_gradient_fit_v[:, 0] = shifts_v[:,int(shifts_v.shape[1] / 2)]
+    gradient_gradient_fit_v[:, 1] = np.polyval(x=x_shifts_v, p=fitvals_v)
+
+    ################
+
+
     # get defocus, astigmatism and tilt
     # ---------------------------------
     for i in range(5):
@@ -230,7 +259,12 @@ if __name__ == '__main__':
            'phase': phase, 
            'zernike_phase_fit' : phase_zern,
            'zernike_coefficients': z, 
-           'zernike_basis_vectors': basis_grid}
+           'zernike_basis_vectors': basis_grid,
+           'gradient_fit_h':gradient_gradient_fit_h,
+           'gradient_fit_v': gradient_gradient_fit_v,
+           'gradient_fitcoeff_h': gradient_fitcoeff_h,
+           'gradient_fitcoeff_v': gradient_fitcoeff_v,
+           }
     cmdline_config_cxi_reader.write_all(params, args.filename, out)
     
     print('display: '+params['h5_group']+'/zernike_coefficients') ; sys.stdout.flush()
